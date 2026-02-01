@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear localStorage</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      text-align: center;
+    }
+    button {
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #c82333;
+    }
+    .success {
+      color: green;
+      margin-top: 20px;
+    }
+    .info {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧹 Clear Browser Storage</h1>
+  
+  <div class="info">
+    <p><strong>This will clear:</strong></p>
+    <ul style="text-align: left; display: inline-block;">
+      <li>localStorage (all keys)</li>
+      <li>sessionStorage</li>
+      <li>Cookies (if any)</li>
+    </ul>
+  </div>
+
+  <button onclick="clearAll()">Clear All Storage</button>
+  <button onclick="clearEnrollMateOnly()">Clear EnrollMate Data Only</button>
+  
+  <div id="result"></div>
+
+  <script>
+    function clearAll() {
+      localStorage.clear();
+      sessionStorage.clear();
+      document.getElementById('result').innerHTML = 
+        '<p class="success">✅ All storage cleared! Refresh the page.</p>';
+    }
+
+    function clearEnrollMateOnly() {
+      const keys = Object.keys(localStorage);
+      const enrollmateKeys = keys.filter(k => 
+        k.includes('enrollmate') || 
+        k.includes('course') ||
+        k.includes('data')
+      );
+      
+      enrollmateKeys.forEach(key => localStorage.removeItem(key));
+      
+      document.getElementById('result').innerHTML = 
+        `<p class="success">✅ Cleared ${enrollmateKeys.length} EnrollMate keys: ${enrollmateKeys.join(', ')}</p>`;
+    }
+
+    // Show current storage on load
+    window.addEventListener('load', () => {
+      const keys = Object.keys(localStorage);
+      if (keys.length > 0) {
+        console.log('Current localStorage keys:', keys);
+        console.log('Total size:', JSON.stringify(localStorage).length, 'bytes');
+      }
+    });
+  </script>
+</body>
+</html>

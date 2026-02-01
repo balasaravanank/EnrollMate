@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { axiosInstance } from '../libs/axios';
 import findConflictingCourses from '../utils/findConfictingCourse';
 import hasSameSubjects from '../utils/hasSameSubject';
 import filterByFreeDaysAndTimes from '../utils/filterByFreeDaysAndTimes';
 import filterByNotConflict from '../utils/filterByNotConflict';
 import findSubjectDetails from '../utils/findSubjectDetails';
+import { parseExtensionData } from '../utils/parseExtensionData';
 
 export const useCourseStore = create(
     persist(
@@ -25,13 +25,36 @@ export const useCourseStore = create(
             coursesByName: [],
 
 
-            // Fetch all courses from server
-            getCourses: async () => {
-                try {
-                    const res = await axiosInstance.get("/courses");
-                    set({ courses: res.data.courses });
-                } catch (err) {
-                    console.error("Error fetching courses:", err.message);
+            // Load courses from Chrome extension data
+            loadCoursesFromExtension: () => {
+                const result = parseExtensionData();
+                
+                if (result.success && result.courses.length > 0) {
+                    set({ courses: result.courses });
+                    console.log(`✅ Loaded ${result.valid} courses from extension`);
+                    
+                    if (result.errors) {
+                        console.warn(`⚠️ ${result.errors.length} courses failed validation`);
+                    }
+                    
+                    return {
+                        success: true,
+                        loaded: result.valid,
+                        failed: result.errors?.length || 0
+                    };
+                } else {
+                    console.warn('❌ No valid courses found in extension data');
+                    return {
+                        success: false,
+                        error: result.error || 'No courses found'
+                    };
+                }
+            },
+
+            // Set courses directly (for manual data loading)
+            setCourses: (courses) => {
+                if (Array.isArray(courses)) {
+                    set({ courses });
                 }
             },
 

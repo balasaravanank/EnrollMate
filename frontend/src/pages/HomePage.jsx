@@ -12,7 +12,7 @@ import Footer from "../components/Footer";
 import { useNavigate } from "react-router";
 
 const HomePage = () => {
-  const { courses, getCourses } = useCourseStore();
+  const { courses } = useCourseStore();
 
   // Modal state for showing conflicts
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
@@ -22,17 +22,8 @@ const HomePage = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (courses?.length === 0) {
-      getCourses();
-    }
-
-    const interval = setInterval(() => {
-      getCourses();
-    }, 5 * 60 * 1000); // every 5 minutes
-
-    return () => clearInterval(interval);
-  }, [courses?.length, getCourses]);
+  // No longer need to fetch from server - courses come from extension
+  // If no courses loaded, user should use the Chrome extension
 
   // Function to open conflict modal with conflict data
   const openConflictModal = (conflicts) => {
