@@ -12,7 +12,7 @@ import Footer from "../components/Footer";
 import { useNavigate } from "react-router";
 
 const HomePage = () => {
-  const { courses, getCourses } = useCourseStore();
+  const { courses } = useCourseStore();
 
   // Modal state for showing conflicts
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
@@ -22,17 +22,6 @@ const HomePage = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (courses?.length === 0) {
-      getCourses();
-    }
-
-    const interval = setInterval(() => {
-      getCourses();
-    }, 5 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [courses?.length, getCourses]);
 
   // Function to open conflict modal with conflict data
   const openConflictModal = (conflicts) => {
