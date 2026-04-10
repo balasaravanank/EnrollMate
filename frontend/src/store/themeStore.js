@@ -4,8 +4,8 @@ export const useThemeStore = create((set) => ({
   isDarkMode: (() => {
     const saved = localStorage.getItem("enrollmate-theme");
     if (saved) return saved === "dark";
-    // Check system preference if no saved theme
-    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    // Default to light mode
+    return false;
   })(),
 
   toggleTheme: () => set((state) => {
