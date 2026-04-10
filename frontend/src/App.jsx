@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
 import { useCourseStore } from "./store/courseStore";
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
   const setCourses = useCourseStore(state => state.setCourses);
@@ -48,6 +49,7 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/" element={<LandingPage />} />
       </Routes>
+      <Analytics />
     </>
   );
 }
