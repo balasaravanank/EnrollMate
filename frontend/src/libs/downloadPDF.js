@@ -2,267 +2,292 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 export const downloadTimetablePDF = async (selectedCourses, filename = 'timetable') => {
-    try {
-        // Helper functions for time slot parsing and overlap detection
-        const parseTimeSlot = (slotString) => {
-            const [startStr, endStr] = slotString.split('-').map(s => s.trim());
-            let start = parseInt(startStr, 10);
-            let end = parseInt(endStr, 10);
-            if (start >= 1 && start <= 5) start += 12;
-            if (end >= 1 && end <= 5) end += 12;
-            return { start, end };
-        };
+  try {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const timeSlots = [
+      { label: '8-10', value: '8-10' },
+      { label: '10-12', value: '10-12' },
+      { label: '1-3', value: '1-3' },
+      { label: '3-5', value: '3-5' }
+    ];
 
-        const doSlotsOverlap = (slot1, slot2) => {
-            const time1 = parseTimeSlot(slot1);
-            const time2 = parseTimeSlot(slot2);
-            return time1.start < time2.end && time2.start < time1.end;
-        };
+    const normalizeHour = (hour) => {
+      if (hour >= 1 && hour <= 5) return hour + 12;
+      return hour;
+    };
 
-        const getSlotDuration = (slotString) => {
-            const { start, end } = parseTimeSlot(slotString);
-            return end - start;
-        };
+    const parseRange = (slotString = '') => {
+      const [startRaw, endRaw] = slotString.split('-').map((value) => Number.parseInt(value, 10));
+      if (Number.isNaN(startRaw) || Number.isNaN(endRaw)) return null;
+      return {
+        start: normalizeHour(startRaw),
+        end: normalizeHour(endRaw)
+      };
+    };
 
-        // Days and 2-hour time blocks (matching the UI)
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        const timeSlots = [
-            { label: '8:00 AM - 10:00 AM', value: '8-10' },
-            { label: '10:00 AM - 12:00 PM', value: '10-12' },
-            { label: '1:00 PM - 3:00 PM', value: '1-3' },
-            { label: '3:00 PM - 5:00 PM', value: '3-5' }
-        ];
+    const overlap = (a, b) => a && b && a.start < b.end && b.start < a.end;
 
-        // Create timetable grid - each block can have left, right, or full course
-        const timetableGrid = {};
-        days.forEach(day => {
-            timetableGrid[day] = {};
-            timeSlots.forEach(slot => {
-                timetableGrid[day][slot.value] = { left: null, right: null, full: null };
-            });
+    const shortCode = (course) => {
+      if (!course?.uniqueId) return '-';
+      return course.uniqueId.split('_').pop() || course.uniqueId;
+    };
+
+    const safeText = (value) => String(value ?? '-')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    const timetableGrid = {};
+    days.forEach((day) => {
+      timetableGrid[day] = {};
+      timeSlots.forEach((slot) => {
+        timetableGrid[day][slot.value] = [];
+      });
+    });
+
+    selectedCourses.forEach((course) => {
+      (course?.slots || []).forEach((slot) => {
+        if (!timetableGrid[slot?.day]) return;
+        const slotRange = parseRange(slot?.time);
+        timeSlots.forEach((block) => {
+          const blockRange = parseRange(block.value);
+          if (overlap(slotRange, blockRange)) {
+            timetableGrid[slot.day][block.value].push(course);
+          }
         });
+      });
+    });
 
-        // Fill timetable with courses
-        selectedCourses.forEach(course => {
-            if (course.slots && Array.isArray(course.slots)) {
-                course.slots.forEach(slot => {
-                    if (!timetableGrid[slot.day]) return;
+    const totalCredits = selectedCourses.reduce((sum, course) => sum + (course?.credits || 0), 0);
+    const generatedOn = new Date().toLocaleString();
+    const cleanFilename = (filename || 'timetable').trim() || 'timetable';
 
-                    const duration = getSlotDuration(slot.time);
-                    const [slotStart] = slot.time.split('-').map(s => parseInt(s, 10));
-
-                    // Find which 2-hour block this course belongs to
-                    timeSlots.forEach(block => {
-                        if (doSlotsOverlap(slot.time, block.value)) {
-                            const [blockStart, blockEnd] = block.value.split('-').map(s => parseInt(s, 10));
-                            
-                            if (duration === 2 && slot.time === block.value) {
-                                // Full 2-hour course
-                                timetableGrid[slot.day][block.value].full = course;
-                            } else if (duration === 1) {
-                                // 1-hour course - determine if left or right half
-                                const leftSlot = `${blockStart}-${blockStart + 1}`;
-                                const rightSlot = `${blockStart + 1}-${blockEnd}`;
-                                
-                                if (slot.time === leftSlot || doSlotsOverlap(slot.time, leftSlot)) {
-                                    timetableGrid[slot.day][block.value].left = course;
-                                } else if (slot.time === rightSlot || doSlotsOverlap(slot.time, rightSlot)) {
-                                    timetableGrid[slot.day][block.value].right = course;
-                                }
-                            }
-                        }
-                    });
-                });
-            }
-        });
-
-        // Generate color for each course
-        const courseColors = {};
-        const colors = [
-            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-            '#EC4899', '#14B8A6', '#F97316', '#06B6D4', '#84CC16'
-        ];
-        selectedCourses.forEach((course, index) => {
-            courseColors[course.uniqueId] = colors[index % colors.length];
-        });
-
-        // Calculate total credits
-        const totalCredits = selectedCourses.reduce((sum, course) => sum + (course?.credits || 0), 0);
-
-        // Generate HTML content
-        const htmlContent = `
+    const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Courses</title>
+  <title>EnrollMate Timetable</title>
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: 'Fira Code', 'Courier New', monospace;
-      background: #0d1117;
-      color: #c9d1d9;
       margin: 0;
-      padding: 60px;
+      padding: 42px;
+      background: #ffffff;
+      color: #111111;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      line-height: 1.35;
+    }
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
     }
     .header {
-      border-bottom: 2px solid #30363d;
-      padding-bottom: 20px;
-      margin-bottom: 30px;
-    }
-    h1 {
-      font-size: 32px;
-      color: #58a6ff;
-      margin: 0 0 10px 0;
-      letter-spacing: -0.5px;
-    }
-    .subtitle {
-      font-size: 14px;
-      color: #8b949e;
       display: flex;
-      gap: 20px;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 2px solid #151515;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
     }
-    .subtitle span {
-      background: #21262d;
-      padding: 4px 8px;
-      border-radius: 4px;
-      border: 1px solid #30363d;
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      margin: 0;
+    }
+    .meta {
+      text-align: right;
+      font-size: 12px;
+      color: #333333;
+    }
+    .stats {
+      display: flex;
+      gap: 18px;
+      margin: 14px 0 22px;
+      font-size: 13px;
+    }
+    .stat {
+      border: 1px solid #cdcdcd;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 20px 0 10px;
+      letter-spacing: 0.3px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 30px;
     }
     th, td {
-      border-bottom: 1px solid #21262d;
-      padding: 16px 12px;
-      text-align: left;
-      font-size: 14px;
+      border: 1px solid #d7d7d7;
+      padding: 8px 10px;
+      vertical-align: top;
+      font-size: 12px;
     }
     th {
-      color: #8b949e;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      font-size: 12px;
-      border-bottom: 2px solid #30363d;
-    }
-    .course-code {
+      background: #f5f5f5;
+      color: #111111;
+      text-align: left;
       font-weight: 700;
-      color: #7ee787;
-      background: rgba(46, 160, 67, 0.1);
-      padding: 6px 10px;
+    }
+    .day-cell {
+      font-weight: 600;
+      width: 108px;
+      white-space: nowrap;
+    }
+    .slot-entry {
+      border: 1px solid #e2e2e2;
       border-radius: 6px;
-      border: 1px solid rgba(46, 160, 67, 0.4);
-      display: inline-block;
-      font-size: 15px;
+      padding: 5px 6px;
+      margin-bottom: 5px;
     }
-    tr:hover {
-      background-color: #161b22;
+    .slot-entry:last-child { margin-bottom: 0; }
+    .slot-code {
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.2px;
     }
-    .footer {
-      margin-top: 60px;
-      padding-top: 20px;
-      border-top: 1px dashed #30363d;
-      font-size: 12px;
-      color: #484f58;
-      text-align: center;
+    .slot-name {
+      font-size: 11px;
+      color: #222222;
+      margin-top: 2px;
+    }
+    .empty {
+      color: #9a9a9a;
+      font-size: 11px;
+    }
+    .code-strong {
+      font-weight: 800;
+      letter-spacing: 0.2px;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>> ./enrollmate_courses.sh</h1>
-    <div class="subtitle">
-      <span>Total Courses: <b>${selectedCourses.length}</b></span>
-      <span>Total Credits: <b>${totalCredits}</b></span>
-      <span style="color: #ff7b72;">[ SYSTEM: ONLINE ]</span>
+  <div class="page">
+    <div class="header">
+      <h1 class="title">EnrollMate Course Timetable</h1>
+      <div class="meta">
+        <div>Generated: ${safeText(generatedOn)}</div>
+      </div>
     </div>
-  </div>
-  
-  <table>
-    <thead>
-      <tr>
-        <th width="20%">COURSE_CODE</th>
-        <th width="45%">COURSE_NAME</th>
-        <th width="20%">FACULTY_ID</th>
-        <th width="15%">CREDITS</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${selectedCourses.map(course => {
-        const codeOnly = course.uniqueId ? course.uniqueId.split('_').pop() : '-';
-        return `
+
+    <div class="stats">
+      <div class="stat">Courses: <strong>${selectedCourses.length}</strong></div>
+      <div class="stat">Credits: <strong>${totalCredits}</strong></div>
+    </div>
+
+    <div class="section-title">Timetable</div>
+    <table>
+      <thead>
         <tr>
-          <td><span class="course-code">${codeOnly}</span></td>
-          <td style="color: #c9d1d9; font-weight: 500;">${course.courseName || '-'}</td>
-          <td style="color: #a5d6ff;">${course.staff || '-'}</td>
-          <td style="color: #d2a8ff; font-weight: bold;">${course.credits || '0'}cr</td>
+          <th>Day</th>
+          ${timeSlots.map((slot) => `<th>${slot.label}</th>`).join('')}
         </tr>
-      `}).join('')}
-    </tbody>
-  </table>
-  
-  <div class="footer">
-    <p>/* Execution successful. Generated by EnrollMate Kernel. */</p>
+      </thead>
+      <tbody>
+        ${days.map((day) => `
+          <tr>
+            <td class="day-cell">${day}</td>
+            ${timeSlots.map((slot) => {
+              const entries = timetableGrid[day][slot.value];
+              if (!entries.length) return '<td><span class="empty">-</span></td>';
+              return `<td>${entries.map((course) => `
+                <div class="slot-entry">
+                  <div class="slot-code">${safeText(shortCode(course))}</div>
+                  <div class="slot-name">${safeText(course?.courseName || '-')}</div>
+                </div>
+              `).join('')}</td>`;
+            }).join('')}
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <div class="section-title">Course List</div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 18%;">Code</th>
+          <th style="width: 52%;">Course Name</th>
+          <th style="width: 15%;">Credits</th>
+          <th style="width: 15%;">Faculty</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${selectedCourses.map((course) => `
+          <tr>
+            <td><span class="code-strong">${safeText(shortCode(course))}</span></td>
+            <td>${safeText(course?.courseName || '-')}</td>
+            <td>${safeText(course?.credits || 0)}</td>
+            <td>${safeText(course?.staff || '-')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
   </div>
 </body>
 </html>
     `;
 
-        // Create PDF from HTML content using iframe and html2canvas
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'absolute';
-        iframe.style.width = '1400px';
-        iframe.style.height = '2000px';
-        iframe.style.left = '-9999px';
-        document.body.appendChild(iframe);
-        
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(htmlContent);
-        doc.close();
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.left = '-99999px';
+    iframe.style.width = '1260px';
+    iframe.style.height = '1000px';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
 
-        // Wait rendering
-        await new Promise(resolve => setTimeout(resolve, 500));
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
 
-        const bodyHeight = doc.body.scrollHeight;
-        iframe.style.height = `${bodyHeight + 50}px`;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    iframe.style.height = `${doc.body.scrollHeight + 60}px`;
 
-        const canvas = await html2canvas(doc.body, {
-            scale: 2,
-            useCORS: true,
-            windowWidth: 1400,
-            logging: false
-        });
+    const canvas = await html2canvas(doc.body, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      windowWidth: 1260,
+      logging: false
+    });
 
-        document.body.removeChild(iframe);
+    document.body.removeChild(iframe);
 
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        let heightLeft = pdfHeight;
-        let position = 0;
-        const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    const printableWidth = pageWidth - margin * 2;
+    const printableHeight = pageHeight - margin * 2;
+    const renderedHeight = (canvas.height * printableWidth) / canvas.width;
 
-        // Add first page
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
+    pdf.addImage(imgData, 'PNG', margin, margin, printableWidth, renderedHeight);
 
-        // Add subsequent pages if content overflows
-        while (heightLeft > 0) {
-            position -= pageHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-            heightLeft -= pageHeight;
-        }
+    let heightLeft = renderedHeight - printableHeight;
+    let yPosition = margin - printableHeight;
 
-        pdf.save(`${filename}.pdf`);
-
-        return { success: true };
-    } catch (error) {
-        console.error('Error generating PDF:', error);
-        return { success: false, error: error.message };
+    while (heightLeft > 0) {
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', margin, yPosition, printableWidth, renderedHeight);
+      yPosition -= printableHeight;
+      heightLeft -= printableHeight;
     }
+
+    pdf.save(`${cleanFilename}.pdf`);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    return { success: false, error: error.message };
+  }
 };
