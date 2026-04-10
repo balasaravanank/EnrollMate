@@ -62,6 +62,7 @@ export const downloadTimetablePDF = async (selectedCourses, filename = 'timetabl
 
     const totalCredits = selectedCourses.reduce((sum, course) => sum + (course?.credits || 0), 0);
     const generatedOn = new Date().toLocaleString();
+    const generatedYear = new Date().getFullYear();
     const cleanFilename = (filename || 'timetable').trim() || 'timetable';
 
     const htmlContent = `
@@ -80,6 +81,7 @@ export const downloadTimetablePDF = async (selectedCourses, filename = 'timetabl
       color: #111111;
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       line-height: 1.35;
+      font-size: 14px;
     }
     .page {
       max-width: 1220px;
@@ -89,37 +91,49 @@ export const downloadTimetablePDF = async (selectedCourses, filename = 'timetabl
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      border-bottom: 2px solid #151515;
+      border-bottom: 2px solid #2563eb;
       padding-bottom: 14px;
       margin-bottom: 18px;
     }
     .title {
-      font-size: 28px;
-      font-weight: 700;
+      font-size: 34px;
+      font-weight: 800;
       letter-spacing: 0.2px;
       margin: 0;
+      color: #111111;
+    }
+    .subtitle {
+      margin-top: 4px;
+      font-size: 14px;
+      color: #2563eb;
+      font-weight: 700;
+      letter-spacing: 0.2px;
     }
     .meta {
       text-align: right;
-      font-size: 12px;
+      font-size: 14px;
       color: #333333;
+      font-weight: 600;
     }
     .stats {
       display: flex;
       gap: 18px;
       margin: 14px 0 22px;
-      font-size: 13px;
+      font-size: 15px;
     }
     .stat {
-      border: 1px solid #cdcdcd;
+      border: 1px solid #cfdcf9;
+      background: #eff6ff;
       padding: 8px 12px;
       border-radius: 8px;
+      font-weight: 600;
     }
     .section-title {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 800;
       margin: 20px 0 10px;
       letter-spacing: 0.3px;
+      color: #1e40af;
     }
     table {
       width: 100%;
@@ -127,53 +141,77 @@ export const downloadTimetablePDF = async (selectedCourses, filename = 'timetabl
     }
     th, td {
       border: 1px solid #d7d7d7;
-      padding: 8px 10px;
+      padding: 10px 12px;
       vertical-align: top;
-      font-size: 12px;
+      font-size: 14px;
     }
     th {
-      background: #f5f5f5;
+      background: #eff6ff;
       color: #111111;
       text-align: left;
-      font-weight: 700;
+      font-weight: 800;
     }
     .day-cell {
-      font-weight: 600;
+      font-weight: 700;
       width: 108px;
       white-space: nowrap;
+      background: #f8fbff;
+      font-size: 15px;
     }
     .slot-entry {
       border: 1px solid #e2e2e2;
       border-radius: 6px;
-      padding: 5px 6px;
-      margin-bottom: 5px;
+      padding: 7px 8px;
+      margin-bottom: 7px;
     }
     .slot-entry:last-child { margin-bottom: 0; }
     .slot-code {
       font-weight: 800;
-      font-size: 11px;
+      font-size: 14px;
       letter-spacing: 0.2px;
+      color: #1d4ed8;
     }
     .slot-name {
-      font-size: 11px;
+      font-size: 13px;
       color: #222222;
       margin-top: 2px;
+      font-weight: 700;
     }
     .empty {
       color: #9a9a9a;
-      font-size: 11px;
+      font-size: 13px;
     }
     .code-strong {
       font-weight: 800;
+      font-size: 15px;
       letter-spacing: 0.2px;
+      color: #1d4ed8;
+    }
+    .footer-note {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #dbeafe;
+      font-size: 13px;
+      color: #1f2937;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-note strong {
+      color: #1d4ed8;
     }
   </style>
 </head>
 <body>
   <div class="page">
     <div class="header">
-      <h1 class="title">EnrollMate Course Timetable</h1>
+      <div>
+        <h1 class="title">EnrollMate Course Timetable</h1>
+        <div class="subtitle">Clean Planner Export</div>
+      </div>
       <div class="meta">
+        <div>Platform: EnrollMate</div>
         <div>Generated: ${safeText(generatedOn)}</div>
       </div>
     </div>
@@ -224,13 +262,19 @@ export const downloadTimetablePDF = async (selectedCourses, filename = 'timetabl
         ${selectedCourses.map((course) => `
           <tr>
             <td><span class="code-strong">${safeText(shortCode(course))}</span></td>
-            <td>${safeText(course?.courseName || '-')}</td>
-            <td>${safeText(course?.credits || 0)}</td>
+            <td><strong>${safeText(course?.courseName || '-')}</strong></td>
+            <td><strong>${safeText(course?.credits || 0)}</strong></td>
             <td>${safeText(course?.staff || '-')}</td>
           </tr>
         `).join('')}
       </tbody>
     </table>
+
+    <div class="footer-note">
+      <div><strong>Built by:</strong> Santhosh, Bala Saravanan K</div>
+      <div><strong>Concept:</strong> Prahathieswaran</div>
+      <div>© ${generatedYear} EnrollMate</div>
+    </div>
   </div>
 </body>
 </html>
