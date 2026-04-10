@@ -15,6 +15,7 @@ export const useCourseStore = create(
             selectedCourses: [],
             searchedCourses: [],
             subjectDetails: [],
+            savedSchedules: [],
             filterOptions: {
                 days: [],
                 times: [],
@@ -113,6 +114,10 @@ export const useCourseStore = create(
                 set({ selectedCourses: filtered });
             },
 
+            clearSelectedCourses: () => {
+                set({ selectedCourses: [] });
+            },
+
             // Get Subject details
 
             getSubjectDetails: (courses) => {
@@ -158,6 +163,37 @@ export const useCourseStore = create(
 
                 set({ courseByName: courseByName });
 
+            },
+
+            // === Saved Schedules ===
+            saveCurrentSchedule: (name) => {
+                const { selectedCourses, savedSchedules } = get();
+                if (selectedCourses.length === 0) return { success: false, message: "No courses to save" };
+                
+                const newSchedule = {
+                    id: Date.now().toString(),
+                    name: name || `Schedule ${savedSchedules.length + 1}`,
+                    courses: [...selectedCourses],
+                    createdAt: new Date().toISOString()
+                };
+                
+                set({ savedSchedules: [...savedSchedules || [], newSchedule] });
+                return { success: true, message: "Schedule saved successfully" };
+            },
+            
+            loadSchedule: (id) => {
+                const { savedSchedules } = get();
+                const schedule = (savedSchedules || []).find(s => s.id === id);
+                if (schedule) {
+                    set({ selectedCourses: [...schedule.courses] });
+                    return { success: true };
+                }
+                return { success: false, message: "Schedule not found" };
+            },
+            
+            deleteSchedule: (id) => {
+                const { savedSchedules } = get();
+                set({ savedSchedules: (savedSchedules || []).filter(s => s.id !== id) });
             }
 
         }),
@@ -167,6 +203,7 @@ export const useCourseStore = create(
             partialize: (state) => ({
                 courses: state.courses,
                 selectedCourses: state.selectedCourses,
+                savedSchedules: state.savedSchedules || [],
             }),
         }
     )

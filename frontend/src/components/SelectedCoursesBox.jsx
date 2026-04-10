@@ -1,6 +1,7 @@
 import React from "react";
 import { useCourseStore } from "../store/courseStore";
 import DownloadPDFBtn from "./DownloadPDFBtn";
+import SaveLoadSchedule from "./SaveLoadSchedule";
 import { X as XIcon, User, Terminal, BookOpen, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -14,18 +15,21 @@ const SelectedCoursesBox = ({ onDownloadClick }) => {
 
   return (
     <div
-      className="bg-[var(--bg-white)] rounded-xl overflow-hidden transition-colors duration-200"
+      className="bg-[var(--bg-white)] rounded-xl transition-colors duration-200 flex flex-col h-full"
       style={{ boxShadow: "var(--shadow-card)" }}
     >
       {/* Header */}
-      <div className="px-5 py-4 border-b border-[rgba(34,42,53,0.06)] dark:border-white/10">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-[14px] font-bold text-[var(--text-charcoal)]">Selected</h3>
-          <div className="flex items-center gap-3 text-[12px] text-[var(--text-subtle)]">
-            <span><span className="font-semibold text-[var(--text-charcoal)]">{selectedCourses.length}</span> courses</span>
-            <span className="text-[var(--text-subtle)] opacity-40">|</span>
-            <span><span className="font-semibold text-[var(--text-charcoal)]">{totalCredits}</span> credits</span>
+      <div className="px-5 py-4 border-b border-[rgba(34,42,53,0.06)] dark:border-white/10 rounded-t-xl bg-[var(--bg-white)] relative z-10">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <h3 className="font-display text-[14px] font-bold text-[var(--text-charcoal)]">Selected</h3>
+            <div className="flex items-center gap-3 text-[12px] text-[var(--text-subtle)]">
+              <span><span className="font-semibold text-[var(--text-charcoal)]">{selectedCourses.length}</span> courses</span>
+              <span className="text-[var(--text-subtle)] opacity-40">|</span>
+              <span><span className="font-semibold text-[var(--text-charcoal)]">{totalCredits}</span> credits</span>
+            </div>
           </div>
+          <SaveLoadSchedule />
         </div>
       </div>
 
@@ -52,7 +56,7 @@ const SelectedCoursesBox = ({ onDownloadClick }) => {
                   </div>
                   <button
                     onClick={() => removeSelectedCourse(course.uniqueId)}
-                    className="opacity-0 group-hover:opacity-100 text-[var(--text-subtle)] hover:text-[#ef4444] p-1.5 rounded-md hover:bg-red-500/10 transition-all duration-150 shrink-0 -mr-1.5 mt-[-4px]"
+                    className="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-[#ef4444] md:text-[var(--text-subtle)] hover:text-[#ef4444] md:hover:bg-red-500/10 p-1.5 rounded-md transition-all duration-150 shrink-0 -mr-1.5 mt-[-4px]"
                     aria-label="Remove course"
                   >
                     <XIcon size={14} strokeWidth={2.5} />
@@ -101,7 +105,7 @@ const SelectedCoursesBox = ({ onDownloadClick }) => {
 
       {/* Footer */}
       {selectedCourses.length > 0 && (
-        <div className="px-5 py-3 bg-[var(--bg-off)] border-t border-[rgba(34,42,53,0.06)] dark:border-white/10">
+        <div className="px-5 py-3 bg-[var(--bg-off)] border-t border-[rgba(34,42,53,0.06)] dark:border-white/10 rounded-b-xl mt-auto">
           <DownloadPDFBtn onClick={onDownloadClick} />
         </div>
       )}

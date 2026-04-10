@@ -49,14 +49,14 @@ const TimeTable = () => {
     const bg = getCourseColor(course.uniqueId);
     return (
       <div
-        className={`${compact ? 'px-1 py-0.5' : 'px-2 py-1.5'} rounded-lg w-full h-full text-center flex flex-col items-center justify-center cursor-default transition-all duration-150`}
+        className={`${compact ? 'px-1 py-1' : 'px-1 sm:px-2 py-1.5'} rounded-lg w-full h-full text-center flex flex-col items-center justify-center cursor-default transition-all duration-150 overflow-hidden`}
         style={{ backgroundColor: bg }}
         title={`${course.courseName} — ${course.staff} (${course.uniqueId})`}
       >
-        <div className={`font-semibold text-white ${compact ? 'text-[8px] sm:text-[10px]' : 'text-[10px] sm:text-[12px]'} truncate w-full leading-snug`}>
+        <div className={`font-semibold text-white ${compact ? 'text-[8px]' : 'text-[9px] sm:text-[11px]'} whitespace-normal break-words leading-tight max-h-[2.2rem] sm:max-h-[2.8rem] overflow-hidden line-clamp-2 w-full px-0.5`}>
           {course.displayName?.toUpperCase() || course.courseName}
         </div>
-        <div className={`text-white/70 ${compact ? 'text-[7px] sm:text-[8px]' : 'text-[8px] sm:text-[10px]'} truncate w-full mt-px`}>
+        <div className={`text-white/80 ${compact ? 'text-[7px]' : 'text-[8px] sm:text-[10px]'} truncate w-full mt-0.5 px-0.5`}>
           {course.staff}
         </div>
       </div>
@@ -92,11 +92,11 @@ const TimeTable = () => {
       </div>
 
       {/* Table */}
-      <div className="w-full overflow-x-auto">
-        <table className="w-full border-separate border-spacing-0 text-sm" style={{ minWidth: "100%" }}>
+      <div className="w-full">
+        <table className="w-full table-fixed border-separate border-spacing-0 text-sm">
           <thead>
             <tr>
-              <th className="w-[13%] px-3 py-2.5 text-left text-[11px] font-semibold text-[var(--text-mid)] uppercase tracking-wider bg-[var(--bg-off)] rounded-tl-lg border-b border-r border-[rgba(34,42,53,0.08)] dark:border-white/10"
+              <th className="w-[13%] px-2 sm:px-3 py-2.5 text-left text-[11px] font-semibold text-[var(--text-mid)] uppercase tracking-wider bg-[var(--bg-off)] rounded-tl-lg border-b border-r border-[rgba(34,42,53,0.08)] dark:border-white/10"
               >
                 Day
               </th>
