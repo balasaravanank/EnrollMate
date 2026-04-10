@@ -42,6 +42,14 @@ const Footer = () => {
 
           <div className="flex items-center gap-4">
             <a
+              href="mailto:balaselvi544@gmail.com?subject=EnrollMate%3A%20Found%20some%20beef%20with%20the%20app%20%F0%9F%A5%A9"
+              className="flex items-center gap-1.5 text-[12px] font-bold text-[var(--text-subtle)] hover:text-[#ef4444] transition-colors"
+              title="Report an issue via email"
+            >
+              <span className="text-[14px]">🐛</span> App acting sus? Spill the tea
+            </a>
+            <span className="text-[var(--text-subtle)] opacity-40">·</span>
+            <a
               href="https://github.com/Sandy-07-Coder/EnrollMate"
               target="_blank"
               rel="noopener noreferrer"
