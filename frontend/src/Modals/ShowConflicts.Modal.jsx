@@ -1,6 +1,5 @@
 import React from "react";
-import { FaXmark } from "react-icons/fa6";
-import { MdWarning } from "react-icons/md";
+import { X, AlertTriangle, User, Hash } from "lucide-react";
 
 const ShowConflictsModal = ({ closeConflictModal, conflictData }) => {
   return (
@@ -10,69 +9,42 @@ const ShowConflictsModal = ({ closeConflictModal, conflictData }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-rose-600 px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <MdWarning className="text-2xl text-yellow-300" />
-            <h2 className="text-lg sm:text-xl font-semibold text-white">Schedule Conflict</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(34,42,53,0.06)] dark:border-white/10">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+              <AlertTriangle size={16} className="text-red-500" />
+            </div>
+            <h2 className="font-display text-[14px] font-bold text-[var(--text-charcoal)]">Schedule Conflict</h2>
           </div>
-          <button
-            onClick={closeConflictModal}
-            className="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-1.5 transition-all duration-200"
-            aria-label="Close modal"
-          >
-            <FaXmark className="text-xl" />
+          <button onClick={closeConflictModal} className="p-1.5 rounded-md hover:bg-[var(--bg-subtle)] transition-colors">
+            <X size={16} className="text-[var(--text-subtle)]" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-5 sm:p-6 overflow-y-auto flex-1">
-          {/* Main Message */}
-          <div className="mb-4">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {conflictData?.message?.split("due to conflicts:")[0]}
-              <span className="text-red-400 font-medium">
-                due to conflicts:
-              </span>
-            </p>
-          </div>
+        <div className="p-6 overflow-y-auto flex-1">
+          <p className="text-[14px] text-[var(--text-mid)] mb-4 leading-relaxed">
+            {conflictData?.message?.split("due to conflicts:")[0]}
+            <span className="text-red-500 font-medium">due to conflicts:</span>
+          </p>
 
-          {/* Conflict List */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {conflictData?.conflicts?.map((conflict, index) => {
-              const messageMatch =
-                conflict.message?.match(/on (\w+) at ([\d-]+)/);
-              const day = messageMatch?.[1] || "Unknown";
-              const time = messageMatch?.[2] || "Unknown";
-
+              const match = conflict.message?.match(/on (\w+) at ([\d-]+)/);
+              const day = match?.[1] || "—";
+              const time = match?.[2] || "—";
               return (
-                <div
-                  key={index}
-                  className="bg-white/5 border border-red-500/20 rounded-xl p-4 hover:border-red-500/40 transition-all duration-200"
-                >
-                  {/* Course Name & Code */}
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-white font-medium text-sm flex-1">
-                      {conflict.confictingCourse?.courseName}
-                    </h3>
-                    <span className="text-xs text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full font-mono shrink-0">
-                      {conflict.confictingCourse?.uniqueId}
-                    </span>
+                <div key={index} className="bg-red-500/5 border border-red-500/10 rounded-xl p-4" style={{ boxShadow: "var(--shadow-ring)" }}>
+                  <h4 className="text-[13px] font-semibold text-[var(--text-charcoal)] mb-1">
+                    {conflict.confictingCourse?.courseName}
+                  </h4>
+                  <div className="flex items-center gap-3 text-[11px] text-[var(--text-mid)] mb-2">
+                    <span className="flex items-center gap-1"><User size={10} />{conflict.confictingCourse?.staff}</span>
+                    <span className="flex items-center gap-1 font-mono text-[var(--text-subtle)]"><Hash size={10} />{conflict.confictingCourse?.uniqueId}</span>
                   </div>
-
-                  {/* Conflict Details */}
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-gray-400">Conflicts on</span>
-                    <span className="text-red-400 font-medium">{day}</span>
-                    <span className="text-gray-400">at</span>
-                    <span className="text-red-400 font-medium">{time}</span>
+                  <div className="text-[12px] text-red-500 font-medium bg-red-500/10 px-2.5 py-1 rounded-md inline-block border border-red-500/20">
+                    {day} at {time}
                   </div>
-
-                  {/* Staff Info */}
-                  {conflict.confictingCourse?.staff && (
-                    <div className="mt-2 text-xs text-gray-500">
-                      Instructor: {conflict.confictingCourse.staff}
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -80,12 +52,12 @@ const ShowConflictsModal = ({ closeConflictModal, conflictData }) => {
         </div>
 
         {/* Footer */}
-        <div className="bg-white/5 px-5 sm:px-6 py-4 border-t border-white/10 shrink-0">
+        <div className="px-6 py-3 bg-[var(--bg-off)] border-t border-[rgba(34,42,53,0.06)] dark:border-white/10">
           <button
             onClick={closeConflictModal}
-            className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-medium py-2.5 px-4 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-red-500/25"
+            className="btn-brand w-full h-9 text-[13px] font-semibold rounded-lg"
           >
-            Close
+            Got it
           </button>
         </div>
       </div>

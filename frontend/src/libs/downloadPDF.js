@@ -1,4 +1,7 @@
-export const downloadTimetableHTML = async (selectedCourses, filename = 'timetable') => {
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+
+export const downloadTimetablePDF = async (selectedCourses, filename = 'timetable') => {
     try {
         // Helper functions for time slot parsing and overlap detection
         const parseTimeSlot = (slotString) => {
@@ -93,355 +96,173 @@ export const downloadTimetableHTML = async (selectedCourses, filename = 'timetab
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Timetable - EnrollMate</title>
+  <title>My Courses</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1e293b 0%, #111827 100%);
-      color: #e5e7eb;
-      padding: 40px 20px;
-      min-height: 100vh;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      background: #0d1117;
+      color: #c9d1d9;
+      margin: 0;
+      padding: 60px;
     }
-    
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-    
     .header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding: 30px;
-      background: rgba(31, 41, 55, 0.8);
-      border-radius: 20px;
-      border: 1px solid rgba(75, 85, 99, 0.5);
+      border-bottom: 2px solid #30363d;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
     }
-    
-    .header h1 {
-      font-size: 42px;
-      background: linear-gradient(to right, #60a5fa, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 10px;
+    h1 {
+      font-size: 32px;
+      color: #58a6ff;
+      margin: 0 0 10px 0;
+      letter-spacing: -0.5px;
     }
-    
-    .header p {
-      color: #9ca3af;
-      font-size: 16px;
-    }
-    
-    .stats {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin-top: 20px;
-    }
-    
-    .stat-item {
-      background: rgba(55, 65, 81, 0.5);
-      padding: 15px 30px;
-      border-radius: 12px;
-      border: 1px solid rgba(75, 85, 99, 0.3);
-    }
-    
-    .stat-label {
-      color: #9ca3af;
+    .subtitle {
       font-size: 14px;
-      margin-bottom: 5px;
+      color: #8b949e;
+      display: flex;
+      gap: 20px;
     }
-    
-    .stat-value {
-      color: #fff;
-      font-size: 24px;
-      font-weight: bold;
+    .subtitle span {
+      background: #21262d;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #30363d;
     }
-    
-    .timetable-container {
-      background: rgba(31, 41, 55, 0.8);
-      border-radius: 20px;
-      padding: 30px;
-      margin-bottom: 40px;
-      border: 1px solid rgba(75, 85, 99, 0.5);
-      overflow-x: auto;
-    }
-    
-    .timetable {
+    table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1000px;
+      margin-top: 30px;
     }
-    
-    .timetable th {
-      background: rgba(55, 65, 81, 0.8);
-      padding: 15px 10px;
-      text-align: center;
+    th, td {
+      border-bottom: 1px solid #21262d;
+      padding: 16px 12px;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      color: #8b949e;
       font-weight: 600;
-      border: 1px solid rgba(75, 85, 99, 0.5);
-      color: #60a5fa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 12px;
+      border-bottom: 2px solid #30363d;
     }
-    
-    .timetable td {
-      padding: 10px;
-      border: 1px solid rgba(75, 85, 99, 0.5);
-      text-align: center;
-      min-height: 80px;
-      background: rgba(17, 24, 39, 0.5);
-    }
-    
-    .time-slot {
-      background: rgba(55, 65, 81, 0.6);
-      font-weight: 600;
-      color: #9ca3af;
-      font-size: 13px;
-    }
-    
-    .course-cell {
-      padding: 12px 8px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      line-height: 1.4;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    
-    .split-cell {
-      display: flex;
-      gap: 4px;
-      height: 100%;
-    }
-    
-    .half-cell {
-      flex: 1;
-      padding: 8px 4px;
+    .course-code {
+      font-weight: 700;
+      color: #7ee787;
+      background: rgba(46, 160, 67, 0.1);
+      padding: 6px 10px;
       border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      color: white;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      border: 1px solid rgba(46, 160, 67, 0.4);
+      display: inline-block;
+      font-size: 15px;
     }
-    
-    .course-name {
-      margin-bottom: 4px;
+    tr:hover {
+      background-color: #161b22;
     }
-    
-    .course-id {
-      font-size: 11px;
-      opacity: 0.9;
-    }
-    
-    .courses-list {
-      background: rgba(31, 41, 55, 0.8);
-      border-radius: 20px;
-      padding: 30px;
-      border: 1px solid rgba(75, 85, 99, 0.5);
-    }
-    
-    .courses-list h2 {
-      font-size: 28px;
-      background: linear-gradient(to right, #34d399, #14b8a6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 25px;
-      text-align: center;
-    }
-    
-    .course-item {
-      background: rgba(55, 65, 81, 0.6);
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      border: 1px solid rgba(75, 85, 99, 0.5);
-    }
-    
-    .course-item h3 {
-      color: #fff;
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-    
-    .course-details {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    
-    .detail-item {
-      color: #9ca3af;
-    }
-    
-    .detail-label {
-      color: #60a5fa;
-      font-weight: 600;
-    }
-    
     .footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px dashed #30363d;
+      font-size: 12px;
+      color: #484f58;
       text-align: center;
-      margin-top: 40px;
-      padding: 20px;
-      color: #6b7280;
-      font-size: 14px;
-    }
-    
-    @media print {
-      body {
-        background: white;
-        color: black;
-      }
-      .timetable-container, .courses-list, .header {
-        background: white;
-        border: 1px solid #ccc;
-      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>📚 My Timetable</h1>
-      <p>Generated by EnrollMate</p>
-      <div class="stats">
-        <div class="stat-item">
-          <div class="stat-label">Total Courses</div>
-          <div class="stat-value">${selectedCourses.length}</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Total Credits</div>
-          <div class="stat-value">${totalCredits}</div>
-        </div>
-      </div>
+  <div class="header">
+    <h1>> ./enrollmate_courses.sh</h1>
+    <div class="subtitle">
+      <span>Total Courses: <b>${selectedCourses.length}</b></span>
+      <span>Total Credits: <b>${totalCredits}</b></span>
+      <span style="color: #ff7b72;">[ SYSTEM: ONLINE ]</span>
     </div>
-    
-    <div class="timetable-container">
-      <table class="timetable">
-        <thead>
-          <tr>
-            <th style="width: 140px;">Day</th>
-            ${timeSlots.map(slot => `<th>${slot.label}</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${days.map(day => `
-            <tr>
-              <td class="time-slot">${day}</td>
-              ${timeSlots.map(slot => {
-                const blockData = (timetableGrid[day] || {})[slot.value] || { left: null, right: null, full: null };
-                const { left, right, full } = blockData;
-                
-                if (full) {
-                    // Full 2-hour course
-                    return `
-                        <td>
-                          <div class="course-cell" style="background: ${courseColors[full.uniqueId]};">
-                            <div class="course-name">${full.courseName}</div>
-                            <div class="course-id">${full.uniqueId}</div>
-                          </div>
-                        </td>
-                      `;
-                } else if (left || right) {
-                    // Split cell with 1-hour courses
-                    return `
-                        <td>
-                          <div class="split-cell">
-                            ${left ? `
-                              <div class="half-cell" style="background: ${courseColors[left.uniqueId]}; border-right: 2px solid rgba(31, 41, 55, 0.8);">
-                                <div style="font-size: 11px; margin-bottom: 2px;">${left.displayName ? left.displayName.toUpperCase() : left.courseName}</div>
-                                <div style="font-size: 9px; opacity: 0.9;">${left.uniqueId}</div>
-                              </div>
-                            ` : `
-                              <div class="half-cell" style="background: rgba(55, 65, 81, 0.3);">
-                                <span style="font-size: 10px; color: #9ca3af;">Free</span>
-                              </div>
-                            `}
-                            ${right ? `
-                              <div class="half-cell" style="background: ${courseColors[right.uniqueId]}; border-left: 2px solid rgba(31, 41, 55, 0.8);">
-                                <div style="font-size: 11px; margin-bottom: 2px;">${right.displayName ? right.displayName.toUpperCase() : right.courseName}</div>
-                                <div style="font-size: 9px; opacity: 0.9;">${right.uniqueId}</div>
-                              </div>
-                            ` : `
-                              <div class="half-cell" style="background: rgba(55, 65, 81, 0.3);">
-                                <span style="font-size: 10px; color: #9ca3af;">Free</span>
-                              </div>
-                            `}
-                          </div>
-                        </td>
-                      `;
-                } else {
-                    // Completely free cell
-                    return '<td><span style="color: #9ca3af; font-size: 12px;">Free</span></td>';
-                }
-            }).join('')}
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-    
-    <div class="courses-list">
-      <h2>📖 Selected Courses</h2>
-      ${selectedCourses.map((course, index) => `
-        <div class="course-item">
-          <h3>
-            <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: ${courseColors[course.uniqueId]}; margin-right: 8px;"></span>
-            ${course.courseName}
-          </h3>
-          <div class="course-details">
-            <div class="detail-item">
-              <span class="detail-label">Unique Id:</span> ${course.uniqueId}
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Staff:</span> ${course.staff}
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Credits:</span> ${course.credits}
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Display Name:</span> ${course.displayName?.toUpperCase() || 'N/A'}
-            </div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-    
-    <div class="footer">
-      <p>💡 Concept by Prahathieswaran | 💻 Built with ❤️ by Santhosh</p>
-      <p>© ${new Date().getFullYear()} EnrollMate. All rights reserved.</p>
-    </div>
+  </div>
+  
+  <table>
+    <thead>
+      <tr>
+        <th width="20%">COURSE_CODE</th>
+        <th width="45%">COURSE_NAME</th>
+        <th width="20%">FACULTY_ID</th>
+        <th width="15%">CREDITS</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${selectedCourses.map(course => {
+        const codeOnly = course.uniqueId ? course.uniqueId.split('_').pop() : '-';
+        return `
+        <tr>
+          <td><span class="course-code">${codeOnly}</span></td>
+          <td style="color: #c9d1d9; font-weight: 500;">${course.courseName || '-'}</td>
+          <td style="color: #a5d6ff;">${course.staff || '-'}</td>
+          <td style="color: #d2a8ff; font-weight: bold;">${course.credits || '0'}cr</td>
+        </tr>
+      `}).join('')}
+    </tbody>
+  </table>
+  
+  <div class="footer">
+    <p>/* Execution successful. Generated by EnrollMate Kernel. */</p>
   </div>
 </body>
 </html>
     `;
 
-        // Create blob and download
-        const blob = new Blob([htmlContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${filename}.html`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        // Create PDF from HTML content using iframe and html2canvas
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.width = '1400px';
+        iframe.style.height = '2000px';
+        iframe.style.left = '-9999px';
+        document.body.appendChild(iframe);
+        
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
+
+        // Wait rendering
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const bodyHeight = doc.body.scrollHeight;
+        iframe.style.height = `${bodyHeight + 50}px`;
+
+        const canvas = await html2canvas(doc.body, {
+            scale: 2,
+            useCORS: true,
+            windowWidth: 1400,
+            logging: false
+        });
+
+        document.body.removeChild(iframe);
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        let heightLeft = pdfHeight;
+        let position = 0;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        // Add first page
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+
+        // Add subsequent pages if content overflows
+        while (heightLeft > 0) {
+            position -= pageHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save(`${filename}.pdf`);
 
         return { success: true };
     } catch (error) {
-        console.error('Error generating HTML:', error);
+        console.error('Error generating PDF:', error);
         return { success: false, error: error.message };
     }
 };

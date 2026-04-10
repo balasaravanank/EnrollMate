@@ -1,4 +1,5 @@
 import React from "react";
+import { ChevronRight } from "lucide-react";
 
 const SubjectCard = ({
   courseName,
@@ -10,30 +11,24 @@ const SubjectCard = ({
   return (
     <div
       onClick={onClick}
-      className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 cursor-pointer group"
+      className="bg-[var(--bg-white)] rounded-xl p-4 hover:shadow-lg transition-all duration-200 cursor-pointer group flex items-center gap-3"
+      style={{
+        boxShadow: "var(--shadow-card)",
+      }}
     >
-      {/* Course Name */}
-      <h4 className="text-white font-semibold text-sm sm:text-base mb-1.5 line-clamp-2 group-hover:text-indigo-100 transition-colors duration-200">
-        {courseName}
-      </h4>
-
-      {/* Display Name */}
-      <p className="gradient-text text-xs sm:text-sm font-medium uppercase mb-3">
-        ({displayName})
-      </p>
-
-      {/* Credits and Total Courses */}
-      <div className="flex items-center justify-between text-xs text-gray-400">
-        <span className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-          Credits: <span className="text-emerald-400 font-medium">{credits}</span>
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
-          Courses:{" "}
-          <span className="text-indigo-400 font-medium">{totalCourses}</span>
-        </span>
+      <div className="flex-1 min-w-0">
+        <h4 className="text-[13px] font-semibold text-[var(--text-charcoal)] mb-0.5 line-clamp-1 group-hover:text-[var(--text-midnight)] transition-colors">
+          {courseName}
+        </h4>
+        <p className="text-[11px] text-[var(--text-subtle)] font-medium uppercase tracking-wide mb-2">
+          {displayName}
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="badge-clean text-[var(--text-charcoal)] bg-[var(--bg-white)] shadow-[var(--shadow-ring)]">{credits} credits</span>
+          <span className="badge-clean badge-clean-dark text-[var(--bg-white)] bg-[var(--text-midnight)] shadow-[var(--shadow-ring)]">{totalCourses} sections</span>
+        </div>
       </div>
+      <ChevronRight size={16} className="text-[var(--text-subtle)] group-hover:text-[var(--text-mid)] shrink-0 transition-colors" />
     </div>
   );
 };

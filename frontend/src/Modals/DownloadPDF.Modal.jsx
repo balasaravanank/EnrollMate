@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X, Download, Loader2 } from "lucide-react";
-import { downloadTimetableHTML } from "../libs/downloadPDF";
+import { downloadTimetablePDF } from "../libs/downloadPDF";
 import { useCourseStore } from "../store/courseStore";
 import toast from "react-hot-toast";
 
@@ -10,99 +10,55 @@ const DownloadPDFModal = ({ closeModal }) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownload = async () => {
-    if (!filename.trim()) {
-      toast.error("Please enter a filename");
-      return;
-    }
-
-    if (selectedCourses.length === 0) {
-      toast.error("No courses selected");
-      return;
-    }
-
+    if (!filename.trim()) { toast.error("Enter a filename"); return; }
+    if (!selectedCourses.length) { toast.error("No courses selected"); return; }
     setIsDownloading(true);
-
     try {
-      const result = await downloadTimetableHTML(selectedCourses, filename);
-
-      if (result.success) {
-        toast.success("Timetable downloaded successfully!");
-        closeModal();
-      } else {
-        toast.error(`Failed to download: ${result.error}`);
-      }
-    } catch (error) {
-      toast.error("An error occurred while downloading");
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !isDownloading) {
-      handleDownload();
-    } else if (e.key === "Escape") {
-      closeModal();
-    }
+      const result = await downloadTimetablePDF(selectedCourses, filename);
+      if (result.success) { toast.success("Downloaded!"); closeModal(); }
+      else toast.error(`Failed: ${result.error}`);
+    } catch { toast.error("Download failed"); }
+    finally { setIsDownloading(false); }
   };
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={closeModal}
-    >
-      <div
-        className="modal-content max-w-md w-full p-6 space-y-5"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="modal-overlay" onClick={closeModal}>
+      <div className="modal-content max-w-sm w-full p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-emerald-600 to-teal-600 p-2.5 rounded-xl shadow-lg shadow-emerald-500/20">
-              <Download className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--color-brand)" }}>
+              <Download size={15} className="text-white" />
             </div>
-            <h2 className="text-xl font-bold text-white">Download Timetable</h2>
+            <h2 className="font-display text-[14px] font-bold text-[var(--text-charcoal)]">Download</h2>
           </div>
-          <button
-            onClick={closeModal}
-            className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg"
-            disabled={isDownloading}
-          >
-            <X className="w-5 h-5" />
+          <button onClick={closeModal} className="p-1.5 rounded-md hover:bg-[var(--bg-subtle)] transition-colors" disabled={isDownloading}>
+            <X size={16} className="text-[var(--text-subtle)]" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="space-y-4">
-          <div>
-            <label
-              htmlFor="filename"
-              className="block text-sm font-medium text-gray-300 mb-2"
-            >
-              File Name
-            </label>
-            <input
-              id="filename"
-              type="text"
-              value={filename}
-              onChange={(e) => setFilename(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Enter filename"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 focus:bg-white/10 transition-all duration-300"
-              disabled={isDownloading}
-              autoFocus
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              File will be saved as "{filename}.html"
-            </p>
-          </div>
+        {/* Input */}
+        <div>
+          <label htmlFor="fn" className="block text-[12px] font-medium text-[var(--text-mid)] mb-1.5">File name</label>
+          <input
+            id="fn" type="text" value={filename}
+            onChange={(e) => setFilename(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !isDownloading) handleDownload(); if (e.key === "Escape") closeModal(); }}
+            className="w-full h-9 bg-[var(--bg-white)] rounded-lg px-3 text-[13px] text-[var(--text-charcoal)] placeholder-[var(--text-subtle)] focus:outline-none transition-all"
+            style={{ boxShadow: "var(--shadow-ring), var(--shadow-inset)" }}
+            onFocus={(e) => e.target.style.boxShadow = "var(--shadow-ring), 0px 0px 0px 3px rgba(36,36,36,0.08)"}
+            onBlur={(e) => e.target.style.boxShadow = "var(--shadow-ring), var(--shadow-inset)"}
+            disabled={isDownloading} autoFocus
+          />
+          <p className="text-[11px] text-[var(--text-subtle)] mt-1">Saves as <span className="font-mono">{filename || "..."}.pdf</span></p>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-2 pt-1">
           <button
             onClick={closeModal}
-            className="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 border border-white/10"
+            className="flex-1 h-9 bg-[var(--bg-white)] text-[13px] font-medium text-[var(--text-mid)] rounded-lg hover:text-[var(--text-charcoal)] transition-all"
+            style={{ boxShadow: "var(--shadow-card)" }}
             disabled={isDownloading}
           >
             Cancel
@@ -110,19 +66,9 @@ const DownloadPDFModal = ({ closeModal }) => {
           <button
             onClick={handleDownload}
             disabled={isDownloading}
-            className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-gray-600 disabled:to-gray-600 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30"
+            className="btn-brand flex-1 h-9 disabled:opacity-30 text-[13px] font-semibold rounded-lg flex items-center justify-center gap-1.5"
           >
-            {isDownloading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Downloading...</span>
-              </>
-            ) : (
-              <>
-                <Download className="w-5 h-5" />
-                <span>Download</span>
-              </>
-            )}
+            {isDownloading ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : <><Download size={14} /> Download</>}
           </button>
         </div>
       </div>

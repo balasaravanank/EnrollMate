@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import React, { useEffect, useRef } from "react";
 import "./App.css";
-import { Routes, Route, useNavigate } from "react-router";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
 import { useCourseStore } from "./store/courseStore";
@@ -11,7 +9,12 @@ function App() {
   const setCourses = useCourseStore(state => state.setCourses);
   const navigate = useNavigate();
 
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     // Check localStorage for extension data
     const storedData = localStorage.getItem('enrollmate_courses');
     const timestamp = localStorage.getItem('enrollmate_timestamp');

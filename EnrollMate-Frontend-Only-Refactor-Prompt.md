@@ -1,30 +1,33 @@
-# EnrollMate – Frontend‑Only Refactor Prompt (Copilot / ChatGPT)
+# EnrollMate - Frontend-Only Refactor Prompt (Copilot / ChatGPT)
 
-Use this prompt to refactor the existing MERN project into a **frontend-only architecture** and integrate directly with a Chrome Extension.
+Use this prompt to refactor the existing MERN project into a frontend-only architecture and integrate directly with a Chrome Extension.
 
 ---
 
-## 🎯 Goal
+## Goal
 
 Convert the project into:
 
-Chrome Extension → Extract DOM → JSON → React App → Local Processing
+Chrome Extension -> Extract DOM -> JSON -> React App -> Local Processing
 
-❌ No backend  
-❌ No Express  
-❌ No MongoDB  
-❌ No Mongoose  
-❌ No APIs  
+Do not use backend infrastructure:
+
+- No backend
+- No Express
+- No MongoDB
+- No Mongoose
+- No APIs
 
 Everything must run fully in the frontend.
 
 ---
 
-## 📌 Instructions for Copilot
+## Instructions for Copilot
 
 Refactor my existing project by removing all backend and database logic and converting the application into a frontend-only system.
 
-### Current structure includes:
+### Current structure includes
+
 - backend (Express + Mongo + Mongoose)
 - controllers
 - routes
@@ -32,38 +35,43 @@ Refactor my existing project by removing all backend and database logic and conv
 - axios calls
 - docker-compose
 
-### I want:
+### Target outcome
+
 A static React (Vite) app that directly receives structured JSON from a Chrome extension and processes everything locally.
 
 ---
 
-## 🔥 Step-by-Step Requirements
+## Step-by-Step Requirements
 
-### 1️⃣ Delete completely
+### 1. Delete completely
+
 Remove these folders/files:
 
-backend/  
-docker-compose.yaml  
-controllers/  
-routers/  
-models/  
-mongoose usage  
-axios API calls  
-.env backend configs  
-Docker backend files  
+- backend/
+- docker-compose.yaml
+- controllers/
+- routers/
+- models/
+- mongoose usage
+- axios API calls
+- .env backend configs
+- Docker backend files
 
 ---
 
-### 2️⃣ Replace Mongoose model with plain JS schema
+### 2. Replace Mongoose model with plain JS schema
 
 Delete:
-courseSchedule.model.js
+
+- courseSchedule.model.js
 
 Create:
-src/types/courseSchedule.types.js
+
+- src/types/courseSchedule.types.js
 
 Use plain JS object structure:
 
+```javascript
 export const CourseShape = {
   uniqueId: "",
   courseName: "",
@@ -77,35 +85,42 @@ export const CourseShape = {
     }
   ]
 };
+```
 
 No database or validation logic.
 
 ---
 
-### 3️⃣ Remove axios/backend communication
+### 3. Remove axios/backend communication
 
 Delete:
-src/libs/axios.js
+
+- src/libs/axios.js
 
 Remove all:
+
 - fetch
 - axios
 - API URLs
 
-All data must come from:
-URL query parameter
+All data must come from URL query parameter.
 
 Example:
+
+```text
 http://localhost:5173/?data=<encoded_json>
+```
 
 ---
 
-### 4️⃣ Add extension data parser
+### 4. Add extension data parser
 
 Create:
-src/utils/parseExtensionData.js
+
+- src/utils/parseExtensionData.js
 
 Function should:
+
 - read query param
 - decodeURIComponent
 - JSON.parse
@@ -113,9 +128,10 @@ Function should:
 
 ---
 
-### 5️⃣ Load courses directly into Zustand store
+### 5. Load courses directly into Zustand store
 
 When app loads:
+
 - parse extension JSON
 - store in Zustand
 - render timetable
@@ -124,32 +140,35 @@ No network requests.
 
 ---
 
-### 6️⃣ Final architecture
+### 6. Final architecture
 
 New structure:
 
+```text
 EnrollMate/
 ├── extension/        (Chrome extension)
 ├── frontend/         (React only)
 └── README.md
+```
 
 ---
 
-### 7️⃣ Expected behavior
+### 7. Expected behavior
 
-User clicks extension  
-→ extension extracts DOM  
-→ converts to JSON  
-→ opens React with encoded data  
-→ React parses  
-→ timetable renders  
-→ user downloads PDF  
+User clicks extension
+-> extension extracts DOM
+-> converts to JSON
+-> opens React with encoded data
+-> React parses
+-> timetable renders
+-> user downloads PDF
 
 ---
 
-### 8️⃣ Output Requirements
+### 8. Output requirements
 
 Generate:
+
 - updated folder structure
 - list of deleted files
 - list of new files
@@ -157,12 +176,11 @@ Generate:
 - migration steps
 - clean, production-ready code
 
-App must be deployable on:
-Vercel (static hosting only)
+App must be deployable on Vercel (static hosting only).
 
 ---
 
-## ✅ Rules
+## Rules
 
 - No backend code
 - No Express
