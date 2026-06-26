@@ -117,13 +117,16 @@ const FilterModal = ({ isFilterModalOpen, setIsFilterModalOpen }) => {
               <div className="bg-[var(--bg-subtle)] border border-[rgba(34,42,53,0.08)] dark:border-white/10 rounded-lg p-3 text-[11.5px] leading-relaxed text-[var(--text-charcoal)] shadow-sm">
                 <strong className="flex items-center gap-1.5 text-[var(--text-midnight)] font-bold text-[12px] mb-1.5">
                   <HelpCircle size={13} className="text-[var(--text-midnight)]" />
-                  Filter Guide
+                  How filters work
                 </strong>
-                Select your free days or times to hide clashing subjects. Use <span className="font-bold text-[var(--text-midnight)]">Non-conflicting</span> to see only courses that fit your current schedule seamlessly.
+                Tap the days or hours you want to keep <span className="font-bold text-[var(--text-midnight)]">free</span> (no class). We'll hide any course scheduled then, so you only see classes that fit the rest of your week.
               </div>
 
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--text-subtle)] mb-2.5 px-1">Free Days</p>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--text-subtle)] mb-1 px-1">Free Days</p>
+                <p className="text-[11.5px] text-[var(--text-charcoal)] mb-2.5 px-1 leading-relaxed">
+                  Pick days you want <span className="font-semibold text-[var(--text-midnight)]">off</span> — selected days will have no classes.
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {DAYS.map((day) => {
                     const isSelected = selectedDays.includes(day);
@@ -147,7 +150,10 @@ const FilterModal = ({ isFilterModalOpen, setIsFilterModalOpen }) => {
               <div className="h-px bg-[rgba(34,42,53,0.06)] dark:bg-white/10" />
 
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--text-subtle)] mb-2.5 px-1">Free Hours</p>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--text-subtle)] mb-1 px-1">Free Hours</p>
+                <p className="text-[11.5px] text-[var(--text-charcoal)] mb-2.5 px-1 leading-relaxed">
+                  Pick time slots you want <span className="font-semibold text-[var(--text-midnight)]">open</span> — no classes will be placed in them.
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {TIME_SLOTS.map((time) => {
                     const isSelected = selectedTimes.includes(time);
@@ -176,7 +182,7 @@ const FilterModal = ({ isFilterModalOpen, setIsFilterModalOpen }) => {
                   <CheckboxItem id="not-conflict" checked={notConflict} onChange={setNotConflict} label="Non-conflicting only" />
                   <CheckboxItem id="not-same-subject" checked={notSameSubject} onChange={setNotSameSubject} label="Non-selected subjects only" />
                 </div>
-                <p className="text-[11px] text-[var(--text-subtle)] mt-2 px-1 leading-relaxed">
+                <p className="text-[11.5px] text-[var(--text-charcoal)] mt-2 px-1 leading-relaxed">
                   Recommended — kept on by default to hide clashing and already-selected subjects.
                 </p>
               </div>

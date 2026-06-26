@@ -38,7 +38,7 @@ const HomePage = () => {
     {
       selector: '[data-tour="filter-options"]',
       title: "Set your preferences",
-      text: "Pick your free days and hours. Keep 'Non-conflicting only' and 'Non-selected subjects only' on so you only see courses that actually fit.",
+      text: "Tap the days and hours you want to keep free — selected slots will have no classes. Keep both options below on so you only see courses that fit.",
       placement: "right",
       onEnter: () => setIsFilterModalOpen(true),
     },
