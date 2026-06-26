@@ -5,11 +5,24 @@ import { useNavigate } from "react-router-dom";
 import { ClipboardPaste, X, Upload, CheckCircle2, AlertCircle } from "lucide-react";
 
 const PasteDataModal = ({ isOpen, onClose }) => {
-  const [rawText, setRawText] = useState("");
+  const [rawText, setRawText] = useState(
+    () => localStorage.getItem("enrollmate_raw") || ""
+  );
   const [status, setStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const setCourses = useCourseStore((state) => state.setCourses);
   const navigate = useNavigate();
+
+  const hasExistingData = !!localStorage.getItem("enrollmate_courses");
+
+  const handleClear = () => {
+    setCourses([]);
+    localStorage.removeItem("enrollmate_courses");
+    localStorage.removeItem("enrollmate_timestamp");
+    localStorage.removeItem("enrollmate_raw");
+    setRawText("");
+    setStatus({ type: "success", message: "Course data cleared." });
+  };
 
   const handleParse = () => {
     if (!rawText.trim()) {
@@ -29,6 +42,7 @@ const PasteDataModal = ({ isOpen, onClose }) => {
       setCourses(courses);
       localStorage.setItem("enrollmate_courses", JSON.stringify(courses));
       localStorage.setItem("enrollmate_timestamp", new Date().toISOString());
+      localStorage.setItem("enrollmate_raw", rawText);
       setStatus({ type: "success", message: `Loaded ${courses.length} course sections` });
       setTimeout(() => { onClose(); navigate("/home", { replace: true }); }, 1000);
     } catch (err) {
@@ -117,18 +131,30 @@ const PasteDataModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-6 py-3 bg-[var(--bg-off)] border-t border-[rgba(34,42,53,0.06)] dark:border-white/10">
-          <button onClick={onClose} className="h-9 px-4 rounded-lg text-[13px] font-medium text-[var(--text-mid)] hover:text-[var(--text-charcoal)] hover:bg-[var(--bg-subtle)] transition-all">
-            Cancel
-          </button>
-          <button
-            onClick={handleParse}
-            disabled={isLoading || !rawText.trim()}
-            className="btn-brand h-9 px-5 text-[13px] font-semibold rounded-lg disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5"
-          >
-            <Upload size={14} />
-            {isLoading ? "Loading..." : "Load Courses"}
-          </button>
+        <div className="flex items-center justify-between gap-2 px-6 py-3 bg-[var(--bg-off)] border-t border-[rgba(34,42,53,0.06)] dark:border-white/10">
+          <div>
+            {hasExistingData && (
+              <button
+                onClick={handleClear}
+                className="h-9 px-4 rounded-lg text-[13px] font-medium text-red-500/80 hover:text-red-500 hover:bg-red-500/10 transition-all"
+              >
+                Clear Data
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="h-9 px-4 rounded-lg text-[13px] font-medium text-[var(--text-mid)] hover:text-[var(--text-charcoal)] hover:bg-[var(--bg-subtle)] transition-all">
+              Cancel
+            </button>
+            <button
+              onClick={handleParse}
+              disabled={isLoading || !rawText.trim()}
+              className="btn-brand h-9 px-5 text-[13px] font-semibold rounded-lg disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5"
+            >
+              <Upload size={14} />
+              {isLoading ? "Loading..." : hasExistingData ? "Update Courses" : "Load Courses"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

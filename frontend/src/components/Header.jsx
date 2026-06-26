@@ -6,9 +6,10 @@ import { showDuplicateToast } from "../utils/toasts/duplicate.toast";
 import { showSameSubjectToast } from "../utils/toasts/sameSubject.toast";
 import { showSuccessToast } from "../utils/toasts/success.toast";
 import hasConflict from "../utils/hasConflict";
-import { Search, X, SlidersHorizontal, Check, AlertCircle, Sun, Moon } from "lucide-react";
+import { Search, X, SlidersHorizontal, Check, AlertCircle, Sun, Moon, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useThemeStore } from "../store/themeStore";
+import { useTourStore } from "../store/tourStore";
 
 const Header = ({
   openConflictModal,
@@ -22,6 +23,7 @@ const Header = ({
   const inputRef = useRef(null);
   
   const { isDarkMode, toggleTheme } = useThemeStore();
+  const resetTour = useTourStore((state) => state.resetTour);
 
   const {
     searchedCourses,
@@ -120,7 +122,7 @@ const Header = ({
         </Link>
 
         {/* Desktop Search */}
-        <div className="hidden md:flex flex-1 max-w-lg" ref={searchRef}>
+        <div className="hidden md:flex flex-1 max-w-lg" ref={searchRef} data-tour="search-box">
           <div className="relative w-full">
             <div className="relative">
               <input
@@ -187,6 +189,7 @@ const Header = ({
 
             <button
               onClick={() => setIsFilterModalOpen(!isFilterModalOpen)}
+              data-tour="filters-button"
               className="relative inline-flex items-center gap-1.5 h-9 px-3 bg-[var(--bg-white)] rounded-lg text-[13px] font-medium text-[var(--text-mid)] hover:text-[var(--text-charcoal)] transition-all duration-150"
               style={{ boxShadow: "var(--shadow-ring), var(--shadow-contact)" }}
             >
@@ -206,6 +209,16 @@ const Header = ({
             aria-label="Toggle dark mode"
           >
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
+          {/* Replay guided tour */}
+          <button
+            onClick={resetTour}
+            className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-[var(--bg-off)] transition-colors text-[var(--text-mid)] hover:text-[var(--text-charcoal)]"
+            aria-label="Replay guide"
+            title="Replay guide"
+          >
+            <HelpCircle size={18} />
           </button>
 
           {/* Mobile Search Toggle */}

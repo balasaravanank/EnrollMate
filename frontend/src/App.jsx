@@ -1,10 +1,20 @@
 import React, { useEffect, useRef } from "react";
 import "./App.css";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
 import { useCourseStore } from "./store/courseStore";
 import { Analytics } from "@vercel/analytics/react";
+
+// Blocks access to the app until course data has been pasted.
+// Direct visits to /home without data are redirected to the landing page.
+function RequireCourseData({ children }) {
+  const courses = useCourseStore((state) => state.courses);
+  if (!courses || courses.length === 0) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
 
 function App() {
   const setCourses = useCourseStore(state => state.setCourses);
@@ -46,7 +56,14 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/home" element={<HomePage />} />
+        <Route
+          path="/home"
+          element={
+            <RequireCourseData>
+              <HomePage />
+            </RequireCourseData>
+          }
+        />
         <Route path="/" element={<LandingPage />} />
       </Routes>
       <Analytics />

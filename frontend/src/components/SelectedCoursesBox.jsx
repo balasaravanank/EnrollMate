@@ -15,6 +15,7 @@ const SelectedCoursesBox = ({ onDownloadClick }) => {
 
   return (
     <div
+      data-tour="selected-box"
       className="bg-[var(--bg-white)] rounded-xl transition-colors duration-200 flex flex-col h-full"
       style={{ boxShadow: "var(--shadow-card)" }}
     >

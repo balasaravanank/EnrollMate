@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PasteDataModal from "../Modals/PasteDataModal";
+import { useCourseStore } from "../store/courseStore";
 import { motion } from "framer-motion";
 import {
   FaGithub,
@@ -19,8 +20,19 @@ import {
 const LandingPage = () => {
   const navigate = useNavigate();
   const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
+  const courses = useCourseStore((state) => state.courses);
 
-  const goToHomePage = () => navigate("/home");
+  const hasCourseData = courses && courses.length > 0;
+
+  // Only enter the app once course data has been pasted.
+  // Otherwise, open the paste modal first.
+  const goToHomePage = () => {
+    if (hasCourseData) {
+      navigate("/home");
+    } else {
+      setIsPasteModalOpen(true);
+    }
+  };
 
   const features = [
     {
@@ -155,7 +167,7 @@ const LandingPage = () => {
                 }}
               >
                 <FaPaste className="w-3.5 h-3.5 text-[var(--text-mid)]" />
-                Paste Course Data
+                {hasCourseData ? "Edit Course Data" : "Paste Course Data"}
               </button>
             </div>
           </motion.div>

@@ -19,8 +19,8 @@ export const useCourseStore = create(
             filterOptions: {
                 days: [],
                 times: [],
-                notConflict: false,
-                notSameSubject: false
+                notConflict: true,
+                notSameSubject: true
             },
             filteredCourses: [],
             coursesByName: [],

@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import TimeTable from "../components/TimeTable";
 import SelectedCoursesBox from "../components/SelectedCoursesBox";
 import ShowConflictsModal from "../Modals/ShowConflicts.Modal";
 import FilterModal from "../Modals/Filter.Modal";
 import DownloadPDFModal from "../Modals/DownloadPDF.Modal";
-import { useCourseStore } from "../store/courseStore";
+import GuidedTour from "../components/GuidedTour";
+import { useTourStore } from "../store/tourStore";
 import { Toaster } from "react-hot-toast";
 import Footer from "../components/Footer";
 
@@ -14,6 +15,67 @@ const HomePage = () => {
   const [conflictData, setConflictData] = useState(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+
+  const { isActive, stepIndex, completed, startTour, goToStep, endTour } =
+    useTourStore();
+
+  // Auto-start the guided tour the first time a user reaches the home page.
+  useEffect(() => {
+    if (!completed) {
+      const t = setTimeout(() => startTour(), 600);
+      return () => clearTimeout(t);
+    }
+  }, [completed, startTour]);
+
+  const tourSteps = [
+    {
+      selector: '[data-tour="filters-button"]',
+      title: "Start with Filters",
+      text: "First stop: open Filters. This is where you narrow down courses by your free days, hours and preferences.",
+      placement: "bottom",
+      onEnter: () => setIsFilterModalOpen(false),
+    },
+    {
+      selector: '[data-tour="filter-options"]',
+      title: "Set your preferences",
+      text: "Pick your free days and hours. Keep 'Non-conflicting only' and 'Non-selected subjects only' on so you only see courses that actually fit.",
+      placement: "right",
+      onEnter: () => setIsFilterModalOpen(true),
+    },
+    {
+      selector: '[data-tour="apply-filters"]',
+      title: "Apply the filters",
+      text: "Once your preferences are set, click Apply to refresh the results on the right.",
+      placement: "top",
+      onEnter: () => setIsFilterModalOpen(true),
+    },
+    {
+      selector: '[data-tour="results-area"]',
+      title: "Pick your preferred course",
+      text: "Browse the subjects here, open one, and choose the section with your preferred staff and timing. Add it to your timetable.",
+      placement: "left",
+      onEnter: () => setIsFilterModalOpen(true),
+    },
+    {
+      selector: '[data-tour="search-box"]',
+      title: "Or search directly",
+      text: "Know what you want? Search by course name, code, or your preferred staff to add it instantly.",
+      placement: "bottom",
+      onEnter: () => setIsFilterModalOpen(false),
+    },
+    {
+      selector: '[data-tour="selected-box"]',
+      title: "Your timetable builds here",
+      text: "Every course you add shows up here and on the grid. Conflicts are flagged automatically. When you're happy, export it.",
+      placement: "left",
+      onEnter: () => setIsFilterModalOpen(false),
+    },
+  ];
+
+  const handleTourClose = () => {
+    setIsFilterModalOpen(false);
+    endTour();
+  };
 
   const openConflictModal = (conflicts) => {
     setConflictData(conflicts);
@@ -100,6 +162,15 @@ const HomePage = () => {
 
         {isDownloadModalOpen && (
           <DownloadPDFModal closeModal={closeDownloadModal} />
+        )}
+
+        {isActive && (
+          <GuidedTour
+            steps={tourSteps}
+            stepIndex={stepIndex}
+            setStepIndex={goToStep}
+            onClose={handleTourClose}
+          />
         )}
 
         <Footer />

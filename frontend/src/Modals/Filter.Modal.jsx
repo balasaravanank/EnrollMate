@@ -20,8 +20,8 @@ const FilterModal = ({ isFilterModalOpen, setIsFilterModalOpen }) => {
 
   const [selectedDays, setSelectedDays] = useState(filterOptions.days || []);
   const [selectedTimes, setSelectedTimes] = useState(filterOptions.times || []);
-  const [notConflict, setNotConflict] = useState(filterOptions.notConflict || false);
-  const [notSameSubject, setNotSameSubject] = useState(filterOptions.notSameSubject || false);
+  const [notConflict, setNotConflict] = useState(filterOptions.notConflict ?? true);
+  const [notSameSubject, setNotSameSubject] = useState(filterOptions.notSameSubject ?? true);
   const [showCourses, setShowCourses] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -42,8 +42,8 @@ const FilterModal = ({ isFilterModalOpen, setIsFilterModalOpen }) => {
   };
 
   const handleResetFilters = () => {
-    setSelectedDays([]); setSelectedTimes([]); setNotConflict(false); setNotSameSubject(false);
-    setFilterOptions([], [], false); filterCourses(); handleBackToSubjects();
+    setSelectedDays([]); setSelectedTimes([]); setNotConflict(true); setNotSameSubject(true);
+    setFilterOptions([], [], true, true); filterCourses(); handleBackToSubjects();
   };
 
   const handleSubjectClick = (courseName) => {
@@ -170,17 +170,20 @@ const FilterModal = ({ isFilterModalOpen, setIsFilterModalOpen }) => {
 
               <div className="h-px bg-[rgba(34,42,53,0.06)] dark:bg-white/10" />
 
-              <div>
+              <div data-tour="filter-options">
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--text-subtle)] mb-2 px-1">Options</p>
                 <div className="space-y-0.5">
                   <CheckboxItem id="not-conflict" checked={notConflict} onChange={setNotConflict} label="Non-conflicting only" />
                   <CheckboxItem id="not-same-subject" checked={notSameSubject} onChange={setNotSameSubject} label="Non-selected subjects only" />
                 </div>
+                <p className="text-[11px] text-[var(--text-subtle)] mt-2 px-1 leading-relaxed">
+                  Recommended — kept on by default to hide clashing and already-selected subjects.
+                </p>
               </div>
             </div>
 
             {/* Right — Results */}
-            <div className="bg-[var(--bg-off)] rounded-xl p-4 flex flex-col min-h-[300px]" style={{ boxShadow: "var(--shadow-ring)" }}>
+            <div data-tour="results-area" className="bg-[var(--bg-off)] rounded-xl p-4 flex flex-col min-h-[300px]" style={{ boxShadow: "var(--shadow-ring)" }}>
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2">
                   {showCourses && (
@@ -243,6 +246,7 @@ const FilterModal = ({ isFilterModalOpen, setIsFilterModalOpen }) => {
             </button>
             <button
               onClick={handleApplyFilters}
+              data-tour="apply-filters"
               className="btn-brand h-8 px-4 text-[13px] font-semibold rounded-lg"
             >
               Apply
